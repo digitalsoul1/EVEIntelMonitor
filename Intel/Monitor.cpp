@@ -1,3 +1,18 @@
+/*
+* Copyright (c) 2023 github.com/digitalsoul1
+*
+* This program is free software: you can redistribute it and/or modify
+        * it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, version 3.
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+        * General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #include <QDir>
 #include "Monitor.h"
 
@@ -21,7 +36,9 @@ namespace EVEIntelMonitor::Intel {
             QMutexLocker locker(&m_qmMutexIndexChannels);
             for (auto &intelFiles: m_qmIntelChannels) {
                 for (auto &intelFile: intelFiles) {
-                    const QFile tempFile(EVE_INTEL_DIR + intelFile.getFileName());
+                    auto documentsDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+                    auto intelDir = documentsDir + "/EVE/logs/Chatlogs/";
+                    const QFile tempFile(documentsDir + intelFile.getFileName());
                     const QFileInfo tempFileInfo(tempFile);
                     if (tempFile.exists()) {
                         if (tempFileInfo.lastModified() > intelFile.getModified()) {
@@ -43,7 +60,9 @@ namespace EVEIntelMonitor::Intel {
 
     void Monitor::indexIntelChannels() {
         QMutexLocker locker(&m_qmMutexIndexChannels);
-        QDir dir(EVE_INTEL_DIR);
+        auto documentsDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+        auto intelDir = documentsDir + "/EVE/logs/Chatlogs/";
+        QDir dir(intelDir);
         QStringList filters;
         filters.append("*" + QString::number(m_intelChannelCharacterId) + ".txt");
         dir.setNameFilters(filters);

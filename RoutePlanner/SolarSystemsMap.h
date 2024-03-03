@@ -13,9 +13,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ROUTEPLANNER_SOLARSYSTEMSMAP_H
-#define ROUTEPLANNER_SOLARSYSTEMSMAP_H
-
+#pragma once
 #include <vector>
 #include "SolarSystem.h"
 
@@ -44,4 +42,3 @@ namespace EVEIntelMonitor {
     };
 
 }
-#endif //ROUTEPLANNER_SOLARSYSTEMSMAP_H

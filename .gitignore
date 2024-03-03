@@ -186,3 +186,4 @@ compile_commands.json
 *_qmlcache.qrc
 
 # End of https://www.toptal.com/developers/gitignore/api/clion,qt,git
+/RoutePlanner/Tools/FuzzToJson/.idea/

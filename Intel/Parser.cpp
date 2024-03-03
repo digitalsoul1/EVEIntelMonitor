@@ -1,3 +1,19 @@
+/*
+* Copyright (c) 2023 github.com/digitalsoul1
+*
+* This program is free software: you can redistribute it and/or modify
+        * it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, version 3.
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+        * General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "Parser.h"
 #include <QtConcurrentRun>
 #include <QtCore/qtextstream.h>
@@ -18,12 +34,13 @@ namespace EVEIntelMonitor::Intel {
 
         std::ignore = QtConcurrent::run([this]() {;
             qInfo() << "Parser thread started with thread id: << " << QThread::currentThreadId();
-
+            auto documentsDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+            auto intelDir = documentsDir + "/EVE/logs/Chatlogs/";
             while (this->m_bParserThreadIsNeeded) {
                 if (!m_qqIntelFileQueue.isEmpty()) {
                     const auto intelFile = this->safeDequeue();
                     QString fileName = intelFile->getFileName();
-                    QFile file(EVE_INTEL_DIR + fileName);
+                    QFile file(intelDir + fileName);
 
                     // open the file to read
                     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {

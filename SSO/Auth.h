@@ -1,6 +1,4 @@
-#ifndef HIVEPROTECTOR_AUTH_H
-#define HIVEPROTECTOR_AUTH_H
-
+#pragma once
 #include <QObject>
 #include <QUrl>
 #include <QtHttpServer>
@@ -66,7 +64,4 @@ namespace EVEIntelMonitor::SSO {
         void accessTokenTimeout();
     };
 
-} // EVEIntelMonitor
-// SSO
-
-#endif //HIVEPROTECTOR_AUTH_H
+}
