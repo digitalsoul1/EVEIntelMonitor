@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="images/ssologin.png">Assets/Images/ssologin.png</file>
+        <file alias="images/left-panel-background.png">Assets/Images/left-panel-background.png</file>
+        <file alias="images/app-icon.png">Assets/Images/app-icon.png</file>
+        <file alias="data/solarSystems.json">Assets/Data/solarSystems.json</file>
+    </qresource>
+</RCC>
