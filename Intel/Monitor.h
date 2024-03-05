@@ -36,6 +36,7 @@ namespace EVEIntelMonitor::Intel {
 
         [[maybe_unused]] QMap<unsigned long, QVector<IntelChannel>> * getIntelChannelsMap();
         QVector<IntelChannel> * getIntelChannelsVector();
+        bool isFirstRun();
         // destructor
         ~Monitor() override;
     public slots:
@@ -60,8 +61,13 @@ namespace EVEIntelMonitor::Intel {
         QMutex m_qmMutexIndexChannels;
         QMutex m_qmMutexIntelChannels;
 
+        // variables
+        bool m_bFirstRun = true;
+        void setFirstRun(bool firstRun);
+
         signals:
         void intelChannelAdded(QString channelName);
+        void intelChannelIndexingComplete();
     };
 
 }

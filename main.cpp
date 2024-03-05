@@ -20,7 +20,7 @@
 #include <QIcon>
 
 #define APP_MAJOR_VERSION "0"
-#define APP_MINOR_VERSION "2"
+#define APP_MINOR_VERSION "3"
 
 int main(int argc, char **argv) {
 

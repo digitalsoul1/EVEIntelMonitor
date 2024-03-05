@@ -37,6 +37,8 @@ namespace EVEIntelMonitor {
 
         void sort(int column, Qt::SortOrder order) override;
 
+        void clear();
+
         // destructor
         ~IntelChannelsListView() override;
     public slots:

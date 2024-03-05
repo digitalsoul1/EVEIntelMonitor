@@ -37,8 +37,8 @@ namespace EVEIntelMonitor {
         m_qtTimerPool->registerTimeoutCallback("authTimeoutTimer", this, &Controller::SSOAuthTimeout);
 
         m_intelMonitor = new Intel::Monitor(this);
+        m_mainWindowView = new MainWindowView(this);
 
-        m_mainWindowView = nullptr;
         m_characterLocation = nullptr;
 
         // SSO Signals
@@ -62,6 +62,8 @@ namespace EVEIntelMonitor {
         // Delete character signal handler
         connect(this, &Controller::ssoIvalidRefreshToken, this, &Controller::deleteCharacter);
 
+        connect(m_intelMonitor, &::EVEIntelMonitor::Intel::Monitor::intelChannelIndexingComplete, this, &Controller::initIntelChannelList);
+
 
         // Format QtLogger
         qSetMessagePattern(
@@ -73,6 +75,7 @@ namespace EVEIntelMonitor {
             qInfo() << "User credentials found, skipping auth process.";
             this->startIntelMonitorAndParser();
             this->createMainWindowView();
+            emit appIsPostAuth();
         }
     }
 
@@ -116,14 +119,17 @@ namespace EVEIntelMonitor {
         m_manager->storeUser(response.getData());
 
         QMutexLocker locker(&m_qmIsFullyInitializedMutex);
-        this->createMainWindowView();
+
+        // Main Window View has to be created first
         this->startIntelMonitorAndParser();
+        this->createMainWindowView();
 
         auto callbackServerNotNeededTimer = m_qtTimerPool->getRawTimer("callbackServerNotNeededTimer");
         if (callbackServerNotNeededTimer == nullptr) {
             m_qtTimerPool->addTimer("callbackServerNotNeededTimer", 60000, true);
             m_qtTimerPool->registerTimeoutCallback("callbackServerNotNeededTimer", this, &::EVEIntelMonitor::Controller::ssoCallBackServerNotNeeded);
-        }
+        } else
+            m_qtTimerPool->stopTimer("callbackServerNotNeededTimer");
 
         m_qtTimerPool->startTimer("callbackServerNotNeededTimer", true);
 
@@ -146,37 +152,29 @@ namespace EVEIntelMonitor {
         m_intelMonitor->getParser()->startParserThread();
         m_intelMonitor->startFilesystemWatcherWorkaroundTimer();
         m_bIsFullyInitialized = true;
-
-        m_qtTimerPool->startTimer("locationUpdateTimer", false);
-
-        emit appIsPostAuth();
     }
 
     void Controller::deleteCharacter() {
         stopThreadsAndTimers();
 
         m_manager->deleteUserData();
-
         m_qtTimerPool->deleteTimer("locationUpdateTimer");
 
         disconnect(m_intelMonitor->getParser(), &Intel::Parser::newIntel,
                    m_mainWindowView->getIntelTableModel(), &IntelTableView::newIntel);
 
-        delete m_mainWindowView;
+        //delete m_mainWindowView;
         m_bIsFullyInitialized = false;
+        m_mainWindowView->getIntelChannelsListModel()->clear();
         emit appIsPreAuth();
     }
 
     void Controller::createMainWindowView() {
-        m_mainWindowView = new MainWindowView(this);
         auto characterId = m_manager->getCharactersIDs().at(0).toULongLong();
         m_mainWindowView->setCharacterId(characterId);
         m_mainWindowView->setCharacterName(m_manager->getCharacterName(characterId));
         m_characterLocation = new SSO::CharacterLocation(m_auth, m_manager, this);
         m_mainWindowView->downloadCharacterPortrait();
-
-        m_qtTimerPool->addTimer("locationUpdateTimer", 10000, false);
-        m_qtTimerPool->registerTimeoutCallback("locationUpdateTimer", this, &Controller::characterLocationQuery);
 
         // connect parser thread with intel table view
         connect(
@@ -187,15 +185,16 @@ namespace EVEIntelMonitor {
         // Update character location immediately
         characterLocationQuery();
         toggleLocationObtained();
-        m_qtTimerPool->startTimer("locationUpdateTimer");
+
+        m_qtTimerPool->addTimer("locationUpdateTimer", 10000, false);
+        m_qtTimerPool->registerTimeoutCallback("locationUpdateTimer", this, &Controller::characterLocationQuery);
+        m_qtTimerPool->startTimer("locationUpdateTimer", false);
+
         // Intel Channel List View signal handler
         connect(m_mainWindowView->getIntelChannelsListModel(), &IntelChannelsListView::toggleChannel, m_intelMonitor,
                 &Intel::Monitor::toggleIntelChannelEnabled);
 
         connect(m_intelMonitor, &::EVEIntelMonitor::Intel::Monitor::intelChannelAdded, m_mainWindowView, &MainWindowView::newIntelChannelAdded);
-
-        // initialize the intel channels list
-        m_mainWindowView->getIntelChannelsListModel()->initIntelChannels(m_intelMonitor->getIntelChannelsVector());
     }
 
     void Controller::characterLocationQuery() {
@@ -284,6 +283,10 @@ namespace EVEIntelMonitor {
 
         if(ConfigBackend::getInstance() != nullptr)
             ConfigBackend::getInstance()->deleteLater();
+    }
+
+    void Controller::initIntelChannelList() {
+        m_mainWindowView->getIntelChannelsListModel()->initIntelChannels(m_intelMonitor->getIntelChannelsVector());
     }
 
 } // namespace EVEIntelMonitor

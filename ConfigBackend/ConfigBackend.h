@@ -30,11 +30,14 @@ namespace EVEIntelMonitor {
         void removeGroup(const QString& group);
         [[nodiscard]] long long groupCount(const QString &key);
         [[maybe_unused]] void wipe();
+        QString getEveIntelDirectory();
     private:
         explicit ConfigBackend(QObject *parent = nullptr);
         static ConfigBackend *m_pInstance;
         QSettings *m_pSettings;
         QMutex m_mutex;
+        QMutex m_eveIntelDirectoryMutex;
+        const QString EVE_INTEL_DIRECTORY;
     };
 
 

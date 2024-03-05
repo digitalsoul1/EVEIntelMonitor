@@ -21,7 +21,7 @@
 namespace EVEIntelMonitor {
     IntelTableView::IntelTableView(QObject *parent)
             : QAbstractTableModel{parent} {
-
+        qInfo() << "IntelTableView created";
     }
 
     int IntelTableView::rowCount(const QModelIndex &parent) const {

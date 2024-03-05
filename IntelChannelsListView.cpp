@@ -52,29 +52,28 @@ namespace EVEIntelMonitor {
     }
 
     void IntelChannelsListView::addIntelChannel(const QString& channelName) {
+        QString channel = channelName;
         QMutexLocker locker(&m_qmIntelChannelsMutex);
-        emit listIsNotEditable();
+
             beginInsertRows(QModelIndex(), m_qIntelChannelsList->size(), m_qIntelChannelsList->size());
             qInfo() << "Adding new Intel Channel: " << channelName << " to the list of " << m_qIntelChannelsList->size()
                     << " channels.";
-            m_qIntelChannelsList->append({channelName, true});
+            m_qIntelChannelsList->append({channel, true});
             endInsertRows();
         locker.unlock();
-        emit listIsEditable();
 
     }
 
     void IntelChannelsListView::initIntelChannels(QVector<Intel::IntelChannel> *intelChannels) {
         QMutexLocker locker(&m_qmIntelChannelsMutex);
-        emit listIsNotEditable();
         beginInsertRows(QModelIndex(), m_qIntelChannelsList->size(), m_qIntelChannelsList->size());
         for (auto &channel: *intelChannels) {
+            beginInsertRows(QModelIndex(), m_qIntelChannelsList->size(), m_qIntelChannelsList->size());
             m_qIntelChannelsList->append({channel.getChannelName(), channel.isEnabled()});
+            endInsertRows();
         }
-        endInsertRows();
         locker.unlock();
         qInfo() << "Intel Channel list initialized with " << m_qIntelChannelsList->size() << " channels";
-        emit listIsEditable();
     }
 
     void IntelChannelsListView::sort(int column, Qt::SortOrder order) {
@@ -82,5 +81,11 @@ namespace EVEIntelMonitor {
         QAbstractItemModel::sort(column, order);
     }
 
-
+    void IntelChannelsListView::clear() {
+        QMutexLocker locker(&m_qmIntelChannelsMutex);
+        beginResetModel();
+        m_qIntelChannelsList->clear();
+        endResetModel();
+        locker.unlock();
+    }
 }

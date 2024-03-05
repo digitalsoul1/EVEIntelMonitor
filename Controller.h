@@ -52,6 +52,7 @@ namespace EVEIntelMonitor {
         void SSOAuthTimeout();
         void SSOAuthTokenPayloadTimeout();
         void theraConnectionsQuery();
+        void initIntelChannelList();
 
     private:
         // classes

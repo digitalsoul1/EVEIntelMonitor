@@ -16,29 +16,25 @@
 #include <QDir>
 #include "Monitor.h"
 
-const unsigned long FILE_QUERY_INTERVAL = 2000;
-
+constexpr unsigned long FILE_QUERY_INTERVAL = 2000;
 
 namespace EVEIntelMonitor::Intel {
     Monitor::Monitor(QObject *parent) : QObject(parent) {
         // Instance variables
-        auto documentsDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-        auto intelDir = documentsDir + "/EVE/logs/Chatlogs/";
-        qInfo() << "Intel directory: " << intelDir;
+        qInfo() << "Intel directory: " << EVEIntelMonitor::ConfigBackend::getInstance()->getEveIntelDirectory();
         m_qFileSystemWatcher = new QFileSystemWatcher(this);
-        m_qFileSystemWatcher->addPath(intelDir);
+        m_qFileSystemWatcher->addPath(EVEIntelMonitor::ConfigBackend::getInstance()->getEveIntelDirectory());
         m_qtFilesystemWatcherWorkaroundTimer = new QTimer(this);
         m_qParser = new Parser(this);
         m_qPersistentSettings = new PersistentSettings(this);
+        setFirstRun(true);
 
         // QFileSystemWatcher does not work as expected for monitoring files. Thus, I have written my own workaround.
         connect(m_qtFilesystemWatcherWorkaroundTimer, &QTimer::timeout, this, [this]() {
             QMutexLocker locker(&m_qmMutexIndexChannels);
             for (auto &intelFiles: m_qmIntelChannels) {
                 for (auto &intelFile: intelFiles) {
-                    auto documentsDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-                    auto intelDir = documentsDir + "/EVE/logs/Chatlogs/";
-                    const QFile tempFile(documentsDir + intelFile.getFileName());
+                    const QFile tempFile(EVEIntelMonitor::ConfigBackend::getInstance()->getEveIntelDirectory() + intelFile.getFileName());
                     const QFileInfo tempFileInfo(tempFile);
                     if (tempFile.exists()) {
                         if (tempFileInfo.lastModified() > intelFile.getModified()) {
@@ -60,9 +56,8 @@ namespace EVEIntelMonitor::Intel {
 
     void Monitor::indexIntelChannels() {
         QMutexLocker locker(&m_qmMutexIndexChannels);
-        auto documentsDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-        auto intelDir = documentsDir + "/EVE/logs/Chatlogs/";
-        QDir dir(intelDir);
+
+        QDir dir(EVEIntelMonitor::ConfigBackend::getInstance()->getEveIntelDirectory());
         QStringList filters;
         filters.append("*" + QString::number(m_intelChannelCharacterId) + ".txt");
         dir.setNameFilters(filters);
@@ -85,6 +80,12 @@ namespace EVEIntelMonitor::Intel {
                 addIntelChannel(m_intelChannelCharacterId, std::move(intelFile));
             else
                 replaceIntelChannelIfNewer(m_intelChannelCharacterId, std::move(intelFile));
+        }
+
+        if(isFirstRun()) {
+            qInfo() << "First run detected. Emitting intelChannelIndexingComplete signal.";
+            setFirstRun(false);
+            emit intelChannelIndexingComplete();
         }
     }
 
@@ -115,8 +116,9 @@ namespace EVEIntelMonitor::Intel {
         qInfo() << "Stopping filesystem watcher workaround timer";
         if(m_qtFilesystemWatcherWorkaroundTimer != nullptr && m_qtFilesystemWatcherWorkaroundTimer->isActive())
             m_qtFilesystemWatcherWorkaroundTimer->stop();
-
         m_qmIntelChannels.clear();
+        m_qmIntelChannels[m_intelChannelCharacterId].clear();
+        qInfo() << "Intel channels map cleared. Size: " << m_qmIntelChannels.size();
     }
 
     void Monitor::addIntelChannelUser(unsigned long characterId) {
@@ -160,6 +162,16 @@ namespace EVEIntelMonitor::Intel {
                 break;
             }
         }
+    }
+
+    void Monitor::setFirstRun(bool firstRun) {
+        QMutexLocker locker(&m_qmMutexIntelChannels);
+        m_bFirstRun = firstRun;
+    }
+
+    bool Monitor::isFirstRun() {
+        QMutexLocker locker(&m_qmMutexIntelChannels);
+        return m_bFirstRun;
     }
 } // EVEIntelMonitor
 // Intel

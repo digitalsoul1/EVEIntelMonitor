@@ -18,7 +18,6 @@
 #include <QtConcurrentRun>
 #include <QtCore/qtextstream.h>
 #include <QDateTime>
-#include "Monitor.h"
 #include "QQueueSizeConstrained.h"
 #include "RoutePlanner/RoutePlanner.h"
 
@@ -34,13 +33,11 @@ namespace EVEIntelMonitor::Intel {
 
         std::ignore = QtConcurrent::run([this]() {;
             qInfo() << "Parser thread started with thread id: << " << QThread::currentThreadId();
-            auto documentsDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-            auto intelDir = documentsDir + "/EVE/logs/Chatlogs/";
             while (this->m_bParserThreadIsNeeded) {
                 if (!m_qqIntelFileQueue.isEmpty()) {
                     const auto intelFile = this->safeDequeue();
                     QString fileName = intelFile->getFileName();
-                    QFile file(intelDir + fileName);
+                    QFile file(EVEIntelMonitor::ConfigBackend::getInstance()->getEveIntelDirectory() + fileName);
 
                     // open the file to read
                     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
