@@ -13,16 +13,18 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+#include <QStandardPaths>
 #include "ConfigBackend.h"
 
 namespace EVEIntelMonitor {
-    ConfigBackend::ConfigBackend(QObject *parent) : QObject(parent) {
+    ConfigBackend::ConfigBackend(QObject *parent) : QObject(parent), EVE_INTEL_DIRECTORY(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/EVE/logs/Chatlogs/") {
         m_pSettings = new QSettings(QSettings::NativeFormat,QSettings::UserScope, "github.digitalsoul1", "EVEIntelMonitor", this);
     }
 
     void ConfigBackend::setValue(const QString &key, const QVariant &value) {
         QMutexLocker locker(&m_mutex);
         m_pSettings->setValue(key, value);
+        m_pSettings->sync();
     }
 
     QVariant ConfigBackend::getValue(const QString &key, const QVariant &defaultValue) {
@@ -49,6 +51,7 @@ namespace EVEIntelMonitor {
     [[maybe_unused]] void ConfigBackend::wipe() {
         QMutexLocker locker(&m_mutex);
         m_pSettings->clear();
+        m_pSettings->sync();
     }
 
     void ConfigBackend::removeGroup(const QString &group) {
@@ -63,6 +66,11 @@ namespace EVEIntelMonitor {
         }
 
         return m_pInstance;
+    }
+
+    QString ConfigBackend::getEveIntelDirectory() {
+        QMutexLocker locker(&m_eveIntelDirectoryMutex);
+        return EVE_INTEL_DIRECTORY;
     }
 
 } // EVEIntelMonitor

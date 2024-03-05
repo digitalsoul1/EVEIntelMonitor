@@ -90,9 +90,8 @@ namespace EVEIntelMonitor {
                     file.close();
                 }
 
-                m_qsCharacterPortraitUrl = QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/portraits/" +
-                                                               QString::number(m_ullCharacterID) + ".jpg");
-                setCharacterPortraitUrl(m_qsCharacterPortraitUrl);
+                setCharacterPortraitUrl(QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/portraits/" +
+                                                           QString::number(m_ullCharacterID) + ".jpg"));
             });
         }
     }

@@ -75,13 +75,13 @@ ApplicationWindow {
         function onAppIsPostAuth() {
             leftSide.state = "PostLogin"
             rightSide.state = "PostLogin"
-
+            console.log("App is post auth")
         }
 
         function onAppIsPreAuth() {
             leftSide.state = "PreLogin"
             rightSide.state = "PreLogin"
-            intelTableConnections.target = null
+            console.log("App is pre auth")
         }
 
         function onSsoIvalidRefreshToken() {
@@ -251,7 +251,7 @@ ApplicationWindow {
                             target: myController.getMainWindowView()
 
                             function onCharacterPortraitReady() {
-                                characterPortrait.source = myController.getMainWindowView().getCharacterPortrait()
+                                characterPortrait.source = myController.getMainWindowView().getCharacterPortraitUrl()
                                 console.log("Character portrait ready")
                             }
                         }
@@ -587,17 +587,17 @@ ApplicationWindow {
 
                 columnWidthProvider: function (column) {
                     if (column === 0)
-                        return 150
+                        return 200
                     else if (column === 1)
                         return 100
                     else if (column === 2)
-                        return 150
+                        return 200
                     else if (columns === 3)
                         return 100
                     else if (column === 4)
                         return 100
                     else if (column === 5)
-                        return rightSide.width - 600;
+                        return rightSide.width - 500;
                 }
 
                 resizableColumns: false

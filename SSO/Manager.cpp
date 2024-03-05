@@ -78,7 +78,7 @@ namespace EVEIntelMonitor::SSO {
     }
 
     void Manager::deleteUserData() const {
-        m_pConfigBackend->removeGroup("SSO-Users");
+        m_pConfigBackend->wipe();
     }
 
     QString Manager::getCharacterName(unsigned long characterId) const {
